@@ -1,5 +1,8 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveAPIView
+)
 from apps.room.api.serializers import RoomListModelSerializer
 from apps.room.paginations import RoomListPageNumberPagination
 from apps.room.models import (
@@ -21,3 +24,8 @@ class RoomListAPIView(ListAPIView):
         if query:
             return self.queryset.filter(name__icontains=query)
         return self.queryset
+
+
+class RoomDetailAPIView(RetrieveAPIView):
+    queryset = Room.objects.all()
+    serializer_class = RoomListModelSerializer
