@@ -145,6 +145,7 @@ REST_FRAMEWORK = {
     'DATETIME_FORMAT': "%Y-%m-%d %H:%M:%S"
 }
 
+AUTH_USER_MODEL = 'common.User'
 
 try:
     from .local_settings import *
