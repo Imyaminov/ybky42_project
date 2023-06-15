@@ -1,5 +1,6 @@
 from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import (
     ListAPIView,
@@ -42,12 +43,21 @@ class RoomAvailabilityAPIView(APIView):
     serializer_class = AvailableRoomTimeSlotsSerializer
 
     def get(self, request, *args, **kwargs):
-        date_serializer = self.serializer_class(data=request.data)
-        date_serializer.is_valid(raise_exception=True)
-        date = date_serializer.validated_data.get('date', datetime.now())
+        date = self.request.data.get('date', datetime.now())
+        if not isinstance(date, datetime):
+            try:
+                date = datetime.strptime(date, "%Y-%m-%d")
+            except ValueError:
+                return Response(
+                    data={
+                        'success': False,
+                        'message': 'Invalid date format. Please provide date in the format year-month-day'
+                    }, status=status.HTTP_400_BAD_REQUEST
+                )
 
-        slots = self.serializer_class.room_available_slots(self.kwargs['pk'], date)
-
-        serializers = self.serializer_class(data=slots, many=True)
+        serializers = self.serializer_class(
+            data=self.serializer_class.room_available_slots(room_id=self.kwargs['pk'], date=date),
+            many=True
+        )
         serializers.is_valid(raise_exception=True)
-        return Response(data=serializers.data)
+        return Response(data=serializers.data, status=status.HTTP_200_OK)
