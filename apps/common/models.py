@@ -14,8 +14,6 @@ class User(AbstractUser, TimeStampedModel):
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
     username = models.CharField(max_length=256, unique=True)
     phone_number = models.CharField(max_length=12, unique=True, validators=[_validate_phone], null=True)
-    email = models.EmailField(unique=True, null=True)
-    is_moderator = models.BooleanField(default=False, verbose_name="Moderator")
 
     objects = UserManager()
 
