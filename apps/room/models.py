@@ -7,6 +7,7 @@ FOCUS, TEAM, CONFERENCE = (
     'team',
     'conference'
 )
+DATE_TIME_FORMAT = "%d-%m-%Y %H:%M:%S"
 
 
 class Room(TimeStampedModel):

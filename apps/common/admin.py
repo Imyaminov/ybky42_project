@@ -6,5 +6,5 @@ from apps.common.models import User
 
 @admin.register(User)
 class UserModelAdmin(ModelAdmin):
-    list_display = ('username', 'is_moderator')
+    list_display = ('username', 'id')
     exclude = ('last_login', 'first_name', 'last_name')

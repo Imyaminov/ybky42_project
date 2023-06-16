@@ -2,19 +2,16 @@ from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.generics import (
-    ListAPIView,
-    RetrieveAPIView,
-)
 from rest_framework.views import APIView
-
-from apps.room.api.serializers import (
-    RoomListModelSerializer, AvailableRoomTimeSlotsSerializer,
+from rest_framework.generics import (
+    ListAPIView, RetrieveAPIView, CreateAPIView,
 )
 from apps.room.paginations import RoomListPageNumberPagination
 from apps.room.models import (
-    Room,
-    Order
+    Room, Order
+)
+from apps.room.api.serializers import (
+    RoomListModelSerializer, AvailableRoomTimeSlotsSerializer, OrderRoomModelSerializer,
 )
 
 
@@ -61,3 +58,8 @@ class RoomAvailabilityAPIView(APIView):
         )
         serializers.is_valid(raise_exception=True)
         return Response(data=serializers.data, status=status.HTTP_200_OK)
+
+
+class OrderRoomCreateApiView(CreateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderRoomModelSerializer

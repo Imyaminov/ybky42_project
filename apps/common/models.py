@@ -13,7 +13,7 @@ class User(AbstractUser, TimeStampedModel):
 
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
     username = models.CharField(max_length=256, unique=True)
-    phone_number = models.CharField(max_length=12, unique=True, validators=[_validate_phone], null=True)
+    phone_number = models.CharField(max_length=12, validators=[_validate_phone], null=True)
 
     objects = UserManager()
 
