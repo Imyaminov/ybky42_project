@@ -34,6 +34,17 @@ class RoomDetailAPIView(RetrieveAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomListModelSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            room = self.queryset.get(id=self.kwargs['pk'])
+        except Room.DoesNotExist:
+            return Response(
+                data={"error": "topilmadi"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = self.get_serializer(room)
+        return Response(serializer.data)
+
 
 class RoomAvailabilityAPIView(APIView):
     queryset = Room.objects.all()
