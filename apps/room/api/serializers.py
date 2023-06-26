@@ -1,7 +1,7 @@
 import pytz
 from datetime import datetime, timedelta, time
 from django.db.models import Q
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from apps.common.api.serializers import ResidentModelSerializer
@@ -93,8 +93,7 @@ class OrderRoomModelSerializer(serializers.ModelSerializer):
         self.check_availability(start, end)
 
         room = get_object_or_404(Room, pk=self.context['view'].kwargs.get('pk'))
-        user = User.objects.get_or_create(username=resident['username'], phone_number=resident['phone_number'])
-
+        user = User.objects.get_or_create(name=resident['name'])
         order = Order.objects.create(resident=user[0], room=room, is_active=True, start=start, end=end)
         return order
 
@@ -107,16 +106,16 @@ class OrderRoomModelSerializer(serializers.ModelSerializer):
                 'success': False,
                 'message': 'start date cannot be greater or equal to end date'
             }
-        elif start.hour < time(hour=9).hour or start.hour > time(hour=18).hour:
-            data = {
-                'success': False,
-                'message': 'starting time must be between 9 am to 18 pm'
-            }
-        elif end.hour < time(hour=9).hour or end.hour > time(hour=18).hour:
-            data = {
-                'success': False,
-                'message': 'end time must be between 9 am to 18 pm'
-            }
+        # elif start.hour < time(hour=9).hour or start.hour > time(hour=18).hour:
+        #     data = {
+        #         'success': False,
+        #         'message': 'starting time must be between 9 am to 18 pm'
+        #     }
+        # elif end.hour < time(hour=9).hour or end.hour > time(hour=18).hour:
+        #     data = {
+        #         'success': False,
+        #         'message': 'end time must be between 9 am to 18 pm'
+        #     }
         elif start < datetime.now() + timedelta(hours=1):
             data = {
                 'success': False,
@@ -129,11 +128,11 @@ class OrderRoomModelSerializer(serializers.ModelSerializer):
     @staticmethod
     def check_availability(start, end):
         query = (
-                (Q(start__lte=start) & Q(end__gte=start)) |
-                (Q(start__lte=end) & Q(end__gte=end))
+                (Q(start__lte=start) & Q(end__gt=start)) |
+                (Q(start__lt=end) & Q(end__gte=end)) |
+                (Q(start__gte=start) & Q(end__lte=end))
         )
         if Order.objects.filter(query).exists():
-            raise ValidationError({
-                'success': False,
-                'message': 'The room is booked for the given time'
-            })
+            error = ValidationError({"error": "uzr, siz tanlagan vaqtda xona band"})
+            error.status_code = status.HTTP_410_GONE
+            raise error

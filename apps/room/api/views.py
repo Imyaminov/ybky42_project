@@ -34,16 +34,27 @@ class RoomDetailAPIView(RetrieveAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomListModelSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            room = self.queryset.get(id=self.kwargs['pk'])
+        except Room.DoesNotExist:
+            return Response(
+                data={"error": "topilmadi"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = self.get_serializer(room)
+        return Response(serializer.data)
+
 
 class RoomAvailabilityAPIView(APIView):
     queryset = Room.objects.all()
     serializer_class = AvailableRoomTimeSlotsSerializer
 
     def get(self, request, *args, **kwargs):
-        date = self.request.data.get('date', datetime.now())
+        date = request.GET.get('date', datetime.now())
         if not isinstance(date, datetime):
             try:
-                date = datetime.strptime(date, "%Y-%m-%d")
+                date = datetime.strptime(date, "%d-%m-%Y")
             except ValueError:
                 return Response(
                     data={
@@ -63,3 +74,19 @@ class RoomAvailabilityAPIView(APIView):
 class OrderRoomCreateApiView(CreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderRoomModelSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                data={"message": "xona muvaffaqiyatli band qilindi"},
+                status=status.HTTP_201_CREATED,
+                headers=headers
+            )
+        else:
+            return Response(
+                data={"error": "uzr, siz tanlagan vaqtda xona band"},
+                status=status.HTTP_410_GONE
+            )
