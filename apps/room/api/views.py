@@ -51,10 +51,10 @@ class RoomAvailabilityAPIView(APIView):
     serializer_class = AvailableRoomTimeSlotsSerializer
 
     def get(self, request, *args, **kwargs):
-        date = self.request.data.get('date', datetime.now())
+        date = request.GET.get('date', datetime.now())
         if not isinstance(date, datetime):
             try:
-                date = datetime.strptime(date, "%Y-%m-%d")
+                date = datetime.strptime(date, "%d-%m-%Y")
             except ValueError:
                 return Response(
                     data={
@@ -74,3 +74,19 @@ class RoomAvailabilityAPIView(APIView):
 class OrderRoomCreateApiView(CreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderRoomModelSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                data={"message": "xona muvaffaqiyatli band qilindi"},
+                status=status.HTTP_201_CREATED,
+                headers=headers
+            )
+        else:
+            return Response(
+                data={"error": "uzr, siz tanlagan vaqtda xona band"},
+                status=status.HTTP_410_GONE
+            )
